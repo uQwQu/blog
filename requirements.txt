@@ -22,6 +22,7 @@ django-autoslug==1.9.9
 django-celery-email==3.0.0
 django-countries==7.6.1
 django-environ==0.11.2
+django-filter==24.3
 djangorestframework==3.15.2
 djangorestframework-simplejwt==5.3.1
 djoser==2.3.1

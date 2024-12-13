@@ -36,6 +36,7 @@ THIRD_PARTY_APPS = [
     "rest_framework_simplejwt",
     "djcelery_email",
     "drf_spectacular",
+    "django_filters",
 ]
 
 LOCAL_APPS = [

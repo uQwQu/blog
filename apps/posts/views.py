@@ -2,10 +2,12 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
+from apps.posts.filters import PostFilter
 from apps.posts.models import Post
 from apps.posts.permissions import IsOwnerOrReadOnly
 from apps.posts.post_access import get_bookmarked_posts, get_posts
@@ -18,11 +20,9 @@ logger = logging.getLogger(__name__)
 
 class PostListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = PostSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PostFilter
     permission_classes = [permissions.IsAuthenticated]
-    ordering_fields = [
-        "created_at",
-        "updated_at",
-    ]
 
     def get_queryset(self):
         return get_posts(self.request.user)
@@ -36,6 +36,8 @@ class PostListCreateAPIView(generics.ListCreateAPIView):
 
 class MyPostListAPIView(generics.ListAPIView):
     serializer_class = PostSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = PostFilter
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

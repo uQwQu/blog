@@ -27,7 +27,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
     def get_country(self, obj) -> str:
-        country_name = dict(countries).get(obj.country, 'Unknown')
+        country_name = dict(countries).get(obj.country, "Unknown")
         return country_name
 
     def get_avatar(self, obj: Profile) -> str | None:

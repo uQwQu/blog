@@ -22,8 +22,10 @@ class PostSerializer(serializers.ModelSerializer):
     banner_image = serializers.ImageField(required=False)
     images = PostImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
-        child=serializers.ImageField(max_length=10 ** 6, allow_empty_file=False),
-        write_only=True, required=False)
+        child=serializers.ImageField(max_length=10**6, allow_empty_file=False),
+        write_only=True,
+        required=False,
+    )
     created_at = serializers.SerializerMethodField()
     updated_at = serializers.SerializerMethodField()
     is_upvoted = serializers.SerializerMethodField()
@@ -89,7 +91,9 @@ class PostSerializer(serializers.ModelSerializer):
         uploaded_images = validated_data.pop("uploaded_images", [])
         post = Post.objects.create(**validated_data)
         if uploaded_images:
-            PostImage.objects.bulk_create([PostImage(post=post, image=image) for image in uploaded_images])
+            PostImage.objects.bulk_create(
+                [PostImage(post=post, image=image) for image in uploaded_images]
+            )
         post.banner_image = validated_data.pop("banner_image", [])
         post.save()
         return post
@@ -98,8 +102,12 @@ class PostSerializer(serializers.ModelSerializer):
         uploaded_images = validated_data.pop("uploaded_images", [])
         if uploaded_images:
             instance.images.all().delete()
-            PostImage.objects.bulk_create([PostImage(post=instance, image=image) for image in uploaded_images])
-        instance.banner_image = validated_data.pop("banner_image", instance.banner_image)
+            PostImage.objects.bulk_create(
+                [PostImage(post=instance, image=image) for image in uploaded_images]
+            )
+        instance.banner_image = validated_data.pop(
+            "banner_image", instance.banner_image
+        )
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

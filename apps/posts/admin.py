@@ -4,8 +4,15 @@ from .models import Post, PostImage
 
 
 class PostAdmin(admin.ModelAdmin):
-    list_display = ["id", "author", "title", "slug", ]
-    list_filter = ["author", ]
+    list_display = [
+        "id",
+        "author",
+        "title",
+        "slug",
+    ]
+    list_filter = [
+        "author",
+    ]
     readonly_fields = ("slug",)
 
 

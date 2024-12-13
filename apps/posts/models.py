@@ -16,7 +16,9 @@ class Post(TimeStampedModel):
     title = models.CharField(verbose_name=_("Title"), max_length=250)
     slug = models.SlugField(unique=True)
     body = models.TextField(verbose_name=_("Post"))
-    banner_image = CloudinaryField(verbose_name=_("Banner Image"), blank=True, null=True)
+    banner_image = CloudinaryField(
+        verbose_name=_("Banner Image"), blank=True, null=True
+    )
     bookmarked_by = models.ManyToManyField(
         User, related_name="bookmarked_posts", blank=True
     )

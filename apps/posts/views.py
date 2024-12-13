@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from apps.posts.models import Post
 from apps.posts.permissions import IsOwnerOrReadOnly
-from apps.posts.post_access import get_posts, get_bookmarked_posts
+from apps.posts.post_access import get_bookmarked_posts, get_posts
 from apps.posts.serializers import PostSerializer
 
 User = get_user_model()
@@ -78,9 +78,7 @@ def unbookmark_post_api_view(request, slug):
 
     if user not in post.bookmarked_by.all():
         return Response(
-            {
-                "message": "You can't remove a bookmark that did not exist"
-            },
+            {"message": "You can't remove a bookmark that did not exist"},
             status=status.HTTP_400_BAD_REQUEST,
         )
     post.bookmarked_by.remove(user)

@@ -1,9 +1,9 @@
 from django.urls import path
 
 from apps.profiles.views import (
-    ProfileListAPIView,
     MyProfileDetailAPIView,
     ProfileDetailAPIView,
+    ProfileListAPIView,
     ProfileUpdateAPIView,
     avatar_upload_api_view,
 )

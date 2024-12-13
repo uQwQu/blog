@@ -37,6 +37,12 @@ volume:
 blog-db:
 	docker compose exec postgres psql --username=${POSTGRES_USER} --dbname=${POSTGRES_DB}
 
+test:
+	docker compose exec api pytest -p no:warnings --cov=.
+
+test-html:
+	docker compose exec api pytest -p no:warnings --cov=. --cov-report html
+
 flake8:
 	docker compose exec api flake8 .
 

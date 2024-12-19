@@ -3,14 +3,14 @@ info:
   title: blog API
   version: 0.0.0
 paths:
-  /api/v1/auth/jwt/create/:
+  /api/v1/auth/login/:
     post:
-      operationId: auth_jwt_create_create
+      operationId: auth_login_create
       description: |-
         Takes a set of user credentials and returns an access and refresh JSON web
         token pair to prove the authentication of those credentials.
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -30,14 +30,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenObtainPair'
           description: ''
-  /api/v1/auth/jwt/refresh/:
+  /api/v1/auth/logout/:
     post:
-      operationId: auth_jwt_refresh_create
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
       description: |-
         Takes a refresh type JSON web token and returns an access type JSON web
         token if the refresh token is valid.
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -57,40 +67,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokenRefresh'
           description: ''
-  /api/v1/auth/jwt/verify/:
-    post:
-      operationId: auth_jwt_verify_create
-      description: |-
-        Takes a token and indicates if it is valid.  This view provides no
-        information about a token's fitness for a particular use.
-      tags:
-        - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenVerify'
-        required: true
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TokenVerify'
-          description: ''
   /api/v1/auth/users/:
     get:
       operationId: auth_users_list
       tags:
-        - auth
-      security:
-        - jwtAuth: [ ]
+      - auth
       responses:
         '200':
           content:
@@ -98,12 +79,12 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CustomUser'
+                  $ref: '#/components/schemas/User'
           description: ''
     post:
       operationId: auth_users_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -117,8 +98,7 @@ paths:
               $ref: '#/components/schemas/UserCreatePasswordRetype'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '201':
           content:
@@ -126,103 +106,95 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserCreatePasswordRetype'
           description: ''
-  /api/v1/auth/users/{pkid}/:
+  /api/v1/auth/users/{id}/:
     get:
       operationId: auth_users_retrieve
       parameters:
-        - in: path
-          name: pkid
-          schema:
-            type: integer
-          description: A unique integer value identifying this User.
-          required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - auth
-      security:
-        - jwtAuth: [ ]
+      - auth
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomUser'
+                $ref: '#/components/schemas/User'
           description: ''
     put:
       operationId: auth_users_update
       parameters:
-        - in: path
-          name: pkid
-          schema:
-            type: integer
-          description: A unique integer value identifying this User.
-          required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CustomUser'
+              $ref: '#/components/schemas/User'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/CustomUser'
+              $ref: '#/components/schemas/User'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/CustomUser'
+              $ref: '#/components/schemas/User'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomUser'
+                $ref: '#/components/schemas/User'
           description: ''
     patch:
       operationId: auth_users_partial_update
       parameters:
-        - in: path
-          name: pkid
-          schema:
-            type: integer
-          description: A unique integer value identifying this User.
-          required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedCustomUser'
+              $ref: '#/components/schemas/PatchedUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedCustomUser'
+              $ref: '#/components/schemas/PatchedUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedCustomUser'
-      security:
-        - jwtAuth: [ ]
+              $ref: '#/components/schemas/PatchedUser'
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomUser'
+                $ref: '#/components/schemas/User'
           description: ''
     delete:
       operationId: auth_users_destroy
       parameters:
-        - in: path
-          name: pkid
-          schema:
-            type: integer
-          description: A unique integer value identifying this User.
-          required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
       tags:
-        - auth
-      security:
-        - jwtAuth: [ ]
+      - auth
       responses:
         '204':
           description: No response body
@@ -230,7 +202,7 @@ paths:
     post:
       operationId: auth_users_activation_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -244,8 +216,7 @@ paths:
               $ref: '#/components/schemas/Activation'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -257,9 +228,7 @@ paths:
     get:
       operationId: auth_users_me_retrieve
       tags:
-        - auth
-      security:
-        - jwtAuth: [ ]
+      - auth
       responses:
         '200':
           content:
@@ -270,7 +239,7 @@ paths:
     put:
       operationId: auth_users_me_update
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -283,8 +252,6 @@ paths:
             schema:
               $ref: '#/components/schemas/CustomUser'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -295,7 +262,7 @@ paths:
     patch:
       operationId: auth_users_me_partial_update
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -307,8 +274,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedCustomUser'
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -319,9 +284,7 @@ paths:
     delete:
       operationId: auth_users_me_destroy
       tags:
-        - auth
-      security:
-        - jwtAuth: [ ]
+      - auth
       responses:
         '204':
           description: No response body
@@ -329,7 +292,7 @@ paths:
     post:
       operationId: auth_users_resend_activation_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -343,8 +306,7 @@ paths:
               $ref: '#/components/schemas/SendEmailReset'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -356,7 +318,7 @@ paths:
     post:
       operationId: auth_users_reset_email_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -370,8 +332,7 @@ paths:
               $ref: '#/components/schemas/SendEmailReset'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -383,7 +344,7 @@ paths:
     post:
       operationId: auth_users_reset_email_confirm_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -397,8 +358,7 @@ paths:
               $ref: '#/components/schemas/UsernameResetConfirm'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -410,7 +370,7 @@ paths:
     post:
       operationId: auth_users_reset_password_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -424,8 +384,7 @@ paths:
               $ref: '#/components/schemas/SendEmailReset'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -437,7 +396,7 @@ paths:
     post:
       operationId: auth_users_reset_password_confirm_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -451,8 +410,7 @@ paths:
               $ref: '#/components/schemas/PasswordResetConfirmRetype'
         required: true
       security:
-        - jwtAuth: [ ]
-        - { }
+      - {}
       responses:
         '200':
           content:
@@ -464,7 +422,7 @@ paths:
     post:
       operationId: auth_users_set_email_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
@@ -477,8 +435,6 @@ paths:
             schema:
               $ref: '#/components/schemas/SetUsername'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -490,35 +446,31 @@ paths:
     post:
       operationId: auth_users_set_password_create
       tags:
-        - auth
+      - auth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SetPasswordRetype'
+              $ref: '#/components/schemas/SetPassword'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SetPasswordRetype'
+              $ref: '#/components/schemas/SetPassword'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SetPasswordRetype'
+              $ref: '#/components/schemas/SetPassword'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SetPasswordRetype'
+                $ref: '#/components/schemas/SetPassword'
           description: ''
   /api/v1/profiles/me/:
     get:
       operationId: profiles_me_retrieve
       tags:
-        - profiles
-      security:
-        - jwtAuth: [ ]
+      - profiles
       responses:
         '200':
           content:
@@ -530,7 +482,7 @@ paths:
     put:
       operationId: profiles_update_update
       tags:
-        - profiles
+      - profiles
       requestBody:
         content:
           application/json:
@@ -543,8 +495,6 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateProfile'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -555,7 +505,7 @@ paths:
     patch:
       operationId: profiles_update_partial_update
       tags:
-        - profiles
+      - profiles
       requestBody:
         content:
           application/json:
@@ -567,8 +517,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedUpdateProfile'
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -580,9 +528,7 @@ paths:
     patch:
       operationId: profiles_avatar_partial_update
       tags:
-        - profiles
-      security:
-        - jwtAuth: [ ]
+      - profiles
       responses:
         '200':
           description: No response body
@@ -591,8 +537,6 @@ paths:
       operationId: profiles_all_list
       tags:
       - profiles
-      security:
-      - jwtAuth: []
       responses:
         '200':
           content:
@@ -613,8 +557,6 @@ paths:
         required: true
       tags:
       - profiles
-      security:
-      - jwtAuth: []
       responses:
         '200':
           content:
@@ -626,9 +568,7 @@ paths:
     get:
       operationId: posts_list
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           content:
@@ -641,7 +581,7 @@ paths:
     post:
       operationId: posts_create
       tags:
-        - posts
+      - posts
       requestBody:
         content:
           application/json:
@@ -654,8 +594,6 @@ paths:
             schema:
               $ref: '#/components/schemas/Post'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '201':
           content:
@@ -667,9 +605,7 @@ paths:
     get:
       operationId: posts_my_list
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           content:
@@ -683,9 +619,7 @@ paths:
     get:
       operationId: posts_bookmarked_list
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           content:
@@ -699,15 +633,13 @@ paths:
     get:
       operationId: posts_retrieve
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           content:
@@ -718,13 +650,13 @@ paths:
     put:
       operationId: posts_update
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
+      - posts
       requestBody:
         content:
           application/json:
@@ -737,8 +669,6 @@ paths:
             schema:
               $ref: '#/components/schemas/Post'
         required: true
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -749,13 +679,13 @@ paths:
     patch:
       operationId: posts_partial_update
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
+      - posts
       requestBody:
         content:
           application/json:
@@ -767,8 +697,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/PatchedPost'
-      security:
-        - jwtAuth: [ ]
       responses:
         '200':
           content:
@@ -779,15 +707,13 @@ paths:
     delete:
       operationId: posts_destroy
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '204':
           description: No response body
@@ -795,15 +721,13 @@ paths:
     patch:
       operationId: posts_bookmark_partial_update
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           description: No response body
@@ -811,15 +735,13 @@ paths:
     patch:
       operationId: posts_unbookmark_partial_update
       parameters:
-        - in: path
-          name: slug
-          schema:
-            type: string
-          required: true
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
       tags:
-        - posts
-      security:
-        - jwtAuth: [ ]
+      - posts
       responses:
         '200':
           description: No response body
@@ -1496,6 +1418,27 @@ components:
           $ref: '#/components/schemas/CountryEnum'
         bio:
           type: string
+    PatchedUser:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 60
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email Address
     Post:
       type: object
       properties:
@@ -1613,19 +1556,16 @@ components:
           format: email
       required:
       - email
-    SetPasswordRetype:
+    SetPassword:
       type: object
       properties:
         new_password:
-          type: string
-        re_new_password:
           type: string
         current_password:
           type: string
       required:
       - current_password
       - new_password
-      - re_new_password
     SetUsername:
       type: object
       properties:
@@ -1667,18 +1607,9 @@ components:
           readOnly: true
         refresh:
           type: string
-          writeOnly: true
       required:
       - access
       - refresh
-    TokenVerify:
-      type: object
-      properties:
-        token:
-          type: string
-          writeOnly: true
-      required:
-      - token
     UpdateProfile:
       type: object
       properties:
@@ -1701,6 +1632,33 @@ components:
       - first_name
       - last_name
       - username
+    User:
+      type: object
+      properties:
+        username:
+          type: string
+          maxLength: 60
+        first_name:
+          type: string
+          maxLength: 50
+        last_name:
+          type: string
+          maxLength: 50
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        email:
+          type: string
+          format: email
+          readOnly: true
+          title: Email Address
+      required:
+      - email
+      - first_name
+      - id
+      - last_name
+      - username
     UserCreatePasswordRetype:
       type: object
       properties:
@@ -1718,8 +1676,9 @@ components:
           format: email
           title: Email Address
           maxLength: 254
-        pkid:
-          type: integer
+        id:
+          type: string
+          format: uuid
           readOnly: true
         password:
           type: string
@@ -1729,9 +1688,9 @@ components:
       required:
       - email
       - first_name
+      - id
       - last_name
       - password
-      - pkid
       - re_password
       - username
     UsernameResetConfirm:
@@ -1744,8 +1703,3 @@ components:
           maxLength: 254
       required:
       - new_email
-  securitySchemes:
-    jwtAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

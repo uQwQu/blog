@@ -2,9 +2,8 @@ import logging
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from apps.posts.filters import PostFilter
@@ -18,14 +17,27 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class PostListCreateAPIView(generics.ListCreateAPIView):
+class PostListAPIView(generics.ListAPIView):
     serializer_class = PostSerializer
-    filter_backends = [DjangoFilterBackend]
     filterset_class = PostFilter
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return get_posts(self.request.user)
+
+
+class MyPostListAPIView(generics.ListAPIView):
+    serializer_class = PostSerializer
+    filterset_class = PostFilter
+
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user).order_by(
+            "-upvotes", "-created_at"
+        )
+
+
+class PostCreateAPIView(generics.CreateAPIView):
+    serializer_class = PostSerializer
 
     def perform_create(self, serializer):
         instance = serializer.save(author=self.request.user)
@@ -34,21 +46,9 @@ class PostListCreateAPIView(generics.ListCreateAPIView):
         )
 
 
-class MyPostListAPIView(generics.ListAPIView):
-    serializer_class = PostSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = PostFilter
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return Post.objects.filter(author=self.request.user).order_by(
-            "-upvotes", "-created_at"
-        )
-
-
 class PostRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    permission_classes = [IsOwnerOrReadOnly]
     lookup_field = "slug"
 
     def get_queryset(self):
@@ -56,7 +56,6 @@ class PostRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
 
 
 @api_view(["PATCH"])
-@permission_classes([permissions.IsAuthenticated])
 def bookmark_post_api_view(request, slug):
     user = request.user
     accessible_post = get_posts(user)
@@ -72,7 +71,6 @@ def bookmark_post_api_view(request, slug):
 
 
 @api_view(["PATCH"])
-@permission_classes([permissions.IsAuthenticated])
 def unbookmark_post_api_view(request, slug):
     user = request.user
     accessible_post = get_posts(user)
@@ -89,7 +87,6 @@ def unbookmark_post_api_view(request, slug):
 
 class BookmarkedPostListAPIView(generics.ListAPIView):
     serializer_class = PostSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return get_bookmarked_posts(self.request.user)

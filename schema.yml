@@ -35,8 +35,6 @@ paths:
       operationId: auth_logout_create
       tags:
       - auth
-      security:
-      - {}
       responses:
         '200':
           description: No response body
@@ -70,6 +68,13 @@ paths:
   /api/v1/auth/users/:
     get:
       operationId: auth_users_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
       tags:
       - auth
       responses:
@@ -77,9 +82,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/PaginatedUserList'
           description: ''
     post:
       operationId: auth_users_create
@@ -535,16 +538,23 @@ paths:
   /api/v1/profiles/all/:
     get:
       operationId: profiles_all_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
       tags:
       - profiles
+      security:
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Profile'
+                $ref: '#/components/schemas/PaginatedProfileList'
           description: ''
   /api/v1/profiles/{username}/:
     get:
@@ -567,6 +577,58 @@ paths:
   /api/v1/posts/:
     get:
       operationId: posts_list
+      parameters:
+      - in: query
+        name: author_username
+        schema:
+          type: string
+      - in: query
+        name: ordering
+        schema:
+          type: array
+          items:
+            type: string
+            enum:
+            - -most_recent
+            - -oldest
+            - most_recent
+            - oldest
+        description: |-
+          Ordering
+
+          * `oldest` - Oldest
+          * `-oldest` - Oldest (descending)
+          * `most_recent` - Most recent
+          * `-most_recent` - Most recent (descending)
+        explode: false
+        style: form
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - posts
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostList'
+          description: ''
+  /api/v1/posts/my/:
+    get:
+      operationId: posts_my_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
       tags:
       - posts
       responses:
@@ -574,12 +636,30 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
+                $ref: '#/components/schemas/PaginatedPostList'
           description: ''
+  /api/v1/posts/bookmarked/:
+    get:
+      operationId: posts_bookmarked_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      tags:
+      - posts
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPostList'
+          description: ''
+  /api/v1/posts/create/:
     post:
-      operationId: posts_create
+      operationId: posts_create_create
       tags:
       - posts
       requestBody:
@@ -600,34 +680,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
-          description: ''
-  /api/v1/posts/my/:
-    get:
-      operationId: posts_my_list
-      tags:
-      - posts
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
-          description: ''
-  /api/v1/posts/bookmarked/:
-    get:
-      operationId: posts_bookmarked_list
-      tags:
-      - posts
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Post'
           description: ''
   /api/v1/posts/{slug}/:
     get:
@@ -1305,6 +1357,75 @@ components:
         * `Male` - Male
         * `Female` - Female
         * `Other` - Other
+    PaginatedPostList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Post'
+    PaginatedProfileList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Profile'
+    PaginatedUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
     PasswordResetConfirmRetype:
       type: object
       properties:

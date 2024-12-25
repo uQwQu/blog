@@ -19,7 +19,7 @@ User = get_user_model()
 
 class ProfileListAPIView(generics.ListAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return Profile.objects.filter(private=False)
@@ -27,7 +27,6 @@ class ProfileListAPIView(generics.ListAPIView):
 
 class MyProfileDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self) -> Profile:
         return get_object_or_404(Profile, user=self.request.user)
@@ -35,7 +34,6 @@ class MyProfileDetailAPIView(generics.RetrieveAPIView):
 
 class ProfileDetailAPIView(generics.RetrieveAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):
         username = self.kwargs.get("username")
@@ -48,7 +46,6 @@ class ProfileDetailAPIView(generics.RetrieveAPIView):
 
 
 class ProfileUpdateAPIView(generics.UpdateAPIView):
-    permission_classes = [permissions.IsAuthenticated]
     serializer_class = UpdateProfileSerializer
 
     def get_object(self) -> Profile:
@@ -66,7 +63,6 @@ class ProfileUpdateAPIView(generics.UpdateAPIView):
 
 
 @api_view(["PATCH"])
-@permission_classes([permissions.IsAuthenticated])
 def avatar_upload_api_view(request):
     profile = request.user.profile
     serializer = AvatarUploadSerializer(profile, data=request.data)

@@ -3,16 +3,18 @@ from django.urls import path
 from apps.posts.views import (
     BookmarkedPostListAPIView,
     MyPostListAPIView,
-    PostListCreateAPIView,
+    PostListAPIView,
+    PostCreateAPIView,
     PostRetrieveUpdateDestroyAPIView,
     bookmark_post_api_view,
     unbookmark_post_api_view,
 )
 
 urlpatterns = [
-    path("", PostListCreateAPIView.as_view(), name="post-list-create"),
+    path("", PostListAPIView.as_view(), name="post-list"),
     path("my/", MyPostListAPIView.as_view(), name="post-my"),
     path("bookmarked/", BookmarkedPostListAPIView.as_view(), name="post-bookmarked"),
+    path("create/", PostCreateAPIView.as_view(), name="post-create"),
     path(
         "<slug:slug>/",
         PostRetrieveUpdateDestroyAPIView.as_view(),

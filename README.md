@@ -2,7 +2,7 @@
 
 A few of the things you can do with *blog*:
 
-* create, delete, update, bookmark/unbookmark posts
+* create, delete, update, bookmark/unbookmark, upvote/downvote posts
 * make your profile private
 
 ## Built With

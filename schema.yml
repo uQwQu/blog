@@ -797,6 +797,34 @@ paths:
       responses:
         '200':
           description: No response body
+  /api/v1/posts/{slug}/upvote/:
+    patch:
+      operationId: posts_upvote_partial_update
+      parameters:
+        - in: path
+          name: slug
+          schema:
+            type: string
+          required: true
+      tags:
+        - posts
+      responses:
+        '200':
+          description: No response body
+  /api/v1/posts/{slug}/downvote/:
+    patch:
+      operationId: posts_downvote_partial_update
+      parameters:
+        - in: path
+          name: slug
+          schema:
+            type: string
+          required: true
+      tags:
+        - posts
+      responses:
+        '200':
+          description: No response body
 components:
   schemas:
     Activation:

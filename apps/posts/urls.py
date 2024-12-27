@@ -7,7 +7,7 @@ from apps.posts.views import (
     PostCreateAPIView,
     PostRetrieveUpdateDestroyAPIView,
     bookmark_post_api_view,
-    unbookmark_post_api_view,
+    unbookmark_post_api_view, upvote_post_api_view, downvote_post_api_view,
 )
 
 urlpatterns = [
@@ -22,4 +22,7 @@ urlpatterns = [
     ),
     path("<slug:slug>/bookmark/", bookmark_post_api_view, name="post-bookmark"),
     path("<slug:slug>/unbookmark/", unbookmark_post_api_view, name="post-unbookmark"),
+    path("<slug:slug>/upvote/", upvote_post_api_view, name="post-upvote"),
+    path(
+        "<slug:slug>/downvote/", downvote_post_api_view, name="post-downvote"),
 ]

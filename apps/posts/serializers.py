@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework import serializers
 
 from apps.posts.models import Post, PostImage
@@ -22,7 +23,7 @@ class PostSerializer(serializers.ModelSerializer):
     banner_image = serializers.ImageField(required=False)
     images = PostImageSerializer(many=True, read_only=True)
     uploaded_images = serializers.ListField(
-        child=serializers.ImageField(max_length=10**6, allow_empty_file=False),
+        child=serializers.ImageField(max_length=10 ** 6, allow_empty_file=False),
         write_only=True,
         required=False,
     )
@@ -111,4 +112,46 @@ class PostSerializer(serializers.ModelSerializer):
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
+        return instance
+
+
+class UpvotePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = []
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+        if user in instance.downvoted_by.all():
+            instance.downvoted_by.remove(user)
+            instance.downvotes = F("downvotes") - 1
+        if user not in instance.upvoted_by.all():
+            instance.upvoted_by.add(user)
+            instance.upvotes = F("upvotes") + 1
+        else:
+            instance.upvoted_by.remove(user)
+            instance.upvotes = F("upvotes") - 1
+        instance.save()
+        return instance
+
+
+class DownvotePostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Post
+        fields = []
+
+    def update(self, instance, validated_data):
+        user = self.context["request"].user
+        if user in instance.upvoted_by.all():
+            instance.upvoted_by.remove(user)
+            instance.upvotes = F("upvotes") - 1
+        if user not in instance.downvoted_by.all():
+            instance.downvoted_by.add(user)
+            instance.downvotes = F("downvotes") + 1
+        else:
+            instance.downvoted_by.remove(user)
+            instance.downvotes = F("downvotes") - 1
+
+        instance.save()
+        instance.refresh_from_db()
         return instance

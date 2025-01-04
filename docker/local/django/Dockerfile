@@ -1,41 +1,48 @@
 FROM python:3.12.7-slim-bookworm as python
 
-ENV APP_HOME=/app
-RUN mkdir $APP_HOME
-RUN mkdir $APP_HOME/staticfiles
-WORKDIR $APP_HOME
+# Stage 1: Build dependency wheels
+FROM python AS python-build-stage
 
-ENV PYTHONDONTWRITEBYTECODE 1
+ARG BUILD_ENVIRONMENT=local
 
-ENV PYTHONUNBUFFERED 1
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    libpq-dev
 
-RUN apt-get update \
-  && apt-get install -y build-essential \
-  && apt-get install -y libpq-dev \
-  && apt-get install -y gettext \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/*
+COPY ./requirements .
 
-RUN pip3 install --upgrade pip
+RUN pip wheel --wheel-dir /usr/src/app/wheels \
+    -r ${BUILD_ENVIRONMENT}.txt
 
-COPY ./requirements.txt /app/requirements.txt
+# Stage 2: Run Stage
+FROM python AS python-run-stage
 
-RUN pip3 install -r requirements.txt
+ARG BUILD_ENVIRONMENT=local
+
+ARG APP_HOME=/app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    BUILD_ENV=${BUILD_ENVIRONMENT}
+
+WORKDIR ${APP_HOME}
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    libpq-dev gettext \
+    && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=python-build-stage /usr/src/app/wheels /wheels/
+
+RUN pip install --no-cache-dir --no-index --find-links=/wheels/ /wheels/* \
+    && rm -rf /wheels/
 
 COPY ./docker/local/django/entrypoint.sh /entrypoint
-RUN sed -i 's/\r$//g' /entrypoint
-RUN chmod +x /entrypoint
-
 COPY ./docker/local/django/start.sh /start
-RUN sed -i 's/\r$//g' /start
-RUN chmod +x /start
-
 COPY ./docker/local/django/celery/worker/start.sh /start-celeryworker
-RUN sed -i 's/\r$//g' /start-celeryworker
-RUN chmod +x /start-celeryworker
-
 COPY ./docker/local/django/celery/flower/start.sh /start-flower
-RUN sed -i 's/\r$//g' /start-flower
-RUN chmod +x /start-flower
+
+RUN sed -i 's/\r$//g' /entrypoint /start /start-celeryworker /start-flower && \
+    chmod +x /entrypoint /start /start-celeryworker /start-flower
 
 ENTRYPOINT [ "/entrypoint"]
